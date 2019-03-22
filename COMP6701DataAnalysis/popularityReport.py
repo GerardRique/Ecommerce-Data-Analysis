@@ -26,22 +26,30 @@ def get_statistics(path, data_set, mean_reviews, limit=None):
             print(i)
         if d['asin'] in data_set:
             curr_mean_review = data_set[d['asin']].increment_average(d['overall'])
+            data_set[d['asin']].update_median(int(d['overall']))
             mean_reviews[d['asin']] = curr_mean_review
         else:
             data_set[d['asin']] = ProductReviewStatistic(d['asin'])
             curr_mean_review = data_set[d['asin']].increment_average(d['overall'])
+            data_set[d['asin']].update_median(int(d['overall']))
             mean_reviews[d['asin']] = curr_mean_review
         i+= 1
-    #print(data_set)
-    return mean_reviews
+    return data_set
+
+def output_data(results):
+    f = open("output.txt", "w")
+    for review in results:
+        f.write(results[review].get_productId() + " " + str(results[review].get_mean()) + "\n")
+    f.close()
 
 
 
-reviews_data_frame = get_data_frame('../AmazonDataset/aggressive_dedup.json.gz', 100)
+
 data_set = {}
 mean_reviews = {}
-mean_reviews = get_statistics('../AmazonDataset/aggressive_dedup.json.gz', data_set, mean_reviews, 15000)
+data_set = get_statistics('../AmazonDataset/reviews_Musical_Instruments.json.gz', data_set, mean_reviews)
 
+output_data(data_set)
 
 # for key, data in mean_reviews.items():
 #     print(key, data)
