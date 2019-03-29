@@ -37,7 +37,7 @@ def get_statistics(path, data_set, mean_reviews, total_reviews, user_most_review
             total_reviews[d['asin']] = 1
             mean_reviews[d['asin']] = curr_mean_review
 
-        if d['reviewerID'] in data_set: 
+        if d['reviewerID'] in user_most_reviews: 
             user_most_reviews[d['reviewerID']] += 1
         else: 
             user_most_reviews[d['reviewerID']] = 1
@@ -52,6 +52,11 @@ def read_product_file(path, product_price_dict):
             pass
     return product_price_dict
 
+def find_smallest_value(data_dict):
+    items = [(-value, key) for key, value in data_dict.items()]
+    smallest = heapq.nsmallest(1, items)
+    return smallest
+
 
 def output_data(results):
     f = open("output.txt", "w")
@@ -64,18 +69,29 @@ product_price_dict = {}
 product_price_dict = read_product_file('../AmazonDataset/meta_Grocery_and_Gourmet_Food.json.gz', product_price_dict)
 print(len(product_price_dict))
 
+#The data set dictionary contains a set of key, value pairs such that each key represents a product ID and each value represents an instance of the ProductReviewStatistic.
 data_set = {}
+#The mean reviews dictionary contains a set of key value pairs such that each key is a product ID and each value represents the mean review for that product.
 mean_reviews = {}
+#The total reviews dictionary is one such that each key represents a product ID and each value represents the number of reviews for that product. 
 total_reviews = {}
+#The user_most_reviews dictionary is one such that each key represents a user ID and each value represents the number of reviews for the corresponding user. 
 user_most_reviews = {}
-# data_set = get_statistics('../AmazonDataset/reviews_Musical_Instruments.json.gz', data_set, mean_reviews, total_reviews, user_most_reviews)
+data_set = get_statistics('../AmazonDataset/reviews_Musical_Instruments.json.gz', data_set, mean_reviews, total_reviews, user_most_reviews)
 
-# items = [(-value, key) for key, value in total_reviews.items()]
-# smallest = heapq.nsmallest(1, items)
-# print(smallest)
+most_reviewed_product = find_smallest_value(total_reviews)
 
-# user_most_reviews_items = [(-value, key) for key, value in user_most_reviews.items()]
+user_with_most_reviews = find_smallest_value(user_most_reviews)
 
-# largest_number_reviews = heapq.nsmallest(10, user_most_reviews_items)
-# print(largest_number_reviews)
+print(most_reviewed_product)
+print(len(user_with_most_reviews))
+#print(user_with_most_reviews)
+
+# f = open("results.txt", "w")
+# f.write(most_reviewed_product)
+# f.write("\n")
+# f.write(user_with_most_reviews)
+# f.close()
+
+
 
