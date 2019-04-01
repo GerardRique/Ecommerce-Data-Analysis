@@ -6,9 +6,6 @@ class ProductReviewStatistic:
         self.median_review = 0
         self.num_reviews = 0
         self.statistics = [0, 0, 0, 0, 0]
-
-    def get_value(self):
-        return self.value
     
     def get_mean(self):
         return self.mean_review
@@ -26,5 +23,8 @@ class ProductReviewStatistic:
 
     def update_median(self, new_review):
         self.statistics[new_review - 1] += 1
+
+    def is_high_review(self):
+        return (self.mean_review >= 4)
 
 
