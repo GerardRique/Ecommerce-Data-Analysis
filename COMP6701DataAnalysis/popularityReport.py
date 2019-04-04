@@ -57,6 +57,7 @@ def get_statistics(path, data_set, mean_reviews, total_reviews, user_most_review
                     else:
                         customer_satisfaction_df.loc[d['reviewerID'], category] = 1
             else:
+                categories = product_cat_dict[d['asin']]
                 for category in categories:
                     customer_satisfaction_df.loc[d['reviewerID'], category] = 1 
                     
@@ -170,6 +171,7 @@ f.close()
 
 #--------------Section b -------------
 print(customer_satisfaction_df.shape)
+print(customer_satisfaction_df.columns)
 
 
 
