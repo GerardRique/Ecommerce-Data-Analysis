@@ -27,4 +27,8 @@ class ProductReviewStatistic:
     def is_high_review(self):
         return (self.mean_review >= 4)
 
+    def get_details(self):
+        mode = self.statistics.index(max(self.statistics))
+        return "Product ID: " + self.productId + "\nMean: " + str(self.mean_review) + "\nMode: " + str(mode) + "\n"
+
 

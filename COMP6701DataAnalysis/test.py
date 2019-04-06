@@ -34,4 +34,21 @@ df2.fillna(0, inplace=True)
 
 df2.loc['user3', 'col3'] = 8
 
+print(df2[df2.columns[2:]])
+
 print(df2)
+
+df3 = pd.DataFrame(columns=['helpfule', 'score'])
+
+df3 = df3.append({'helpfule': 1, 'score': 2}, ignore_index=True)
+df3 = df3.append({'helpfule': 1, 'score': 2}, ignore_index=True)
+df3 = df3.append({'helpfule': 1, 'score': 2}, ignore_index=True)
+
+print(df3)
+
+
+testArray = np.array([[1, 2, 3], [4, 5, 5]])
+
+testArray = np.append(testArray, [[7, 8, 9]], axis=0)
+print(testArray)
+np.savetxt('testResult.csv', testArray, delimiter=",")
