@@ -7,6 +7,8 @@ import heapq
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 
+import time
+
 
 def parse_file(path):
     g = gzip.open(path, 'rb')
@@ -25,16 +27,36 @@ def get_data_frame(path, limit):
 
 def get_statistics(path):
     mean_reviews = {}
+    statistics_dict = {}
+    user_num_reviews_dict = {}
+    all_product_rating_hist = [0, 0, 0, 0, 0]
+    num_reviews = 0
+    mean_review = 0
     for d in parse_file(path):
+        try:
+            all_product_rating_hist[round(int(d['overall']))] += 1
+            num_reviews += 1
+            mean_review = mean_review + ((int(d['overall']) - mean_review) / num_reviews)
+        except Exception:
+            pass 
+
         if d['asin'] in mean_reviews:
             current_mean = mean_reviews[d['asin']][0]
             mean_reviews[d['asin']][1] += 1
-            mean_reviews[d['asin']][0] = round((current_mean + ((int(d['overall']) - current_mean) / mean_reviews[d['asin']][1])), 1)
+            mean_reviews[d['asin']][0] = round((current_mean + ((int(d['overall']) - current_mean) / mean_reviews[d['asin']][1])))
+            statistics_dict[d['asin']][round(int(d['overall'])) - 1] += 1
         else:
             mean_reviews[d['asin']] = [int(d['overall']), 1]
+            statistics_dict[d['asin']] = [0, 0, 0, 0, 0]
+            statistics_dict[d['asin']][round(int(d['overall'])) - 1] += 1
+
+        if d['reviewerID'] in user_num_reviews_dict:
+            user_num_reviews_dict[d['reviewerID']] += 1
+
+        else: user_num_reviews_dict[d['reviewerID']] = 1
 
 
-    return mean_reviews
+    return mean_reviews, statistics_dict, all_product_rating_hist, mean_review, user_num_reviews_dict
 
 def read_product_file(path, product_price_dict, product_cat_dict):
     for data in parse_file(path):
@@ -93,23 +115,68 @@ def output_data(results):
     f.close()
 
 
-product_price_dict = {}
-product_cat_dict = {}
 
-print("Product File Read: Initiated...\n")
-product_price_dict, product_cat_dict = read_product_file('../AmazonDataSet/meta_Musical_Instruments.json.gz', product_price_dict, product_cat_dict)
-print("Product File Read: Completed\n")
+def main():
+
+    product_price_dict = {}
+    product_cat_dict = {}
+
+    start_time = time.time()
+
+    print("Product File Read: Initiated...\n")
+    product_price_dict, product_cat_dict = read_product_file('../AmazonDataset/meta_Musical_Instruments.json.gz', product_price_dict, product_cat_dict)
+    print("Product File Read: Completed\n")
 
 
-print("Review File Read: Inititated\n")
-mean_reviews = get_statistics('../AmazonDataSet/reviews_Musical_Instruments.json.gz')
-print("Review File Read: Completed\n")
+    print("Review File Read: Inititated\n")
+    mean_reviews, statistics_dict, all_product_rating_hist, mean_review, user_num_reviews_dict = get_statistics('../AmazonDataset/reviews_Musical_Instruments.json.gz')
+    print("Review File Read: Completed\n")
 
-mean_results_file = open("Results/MeanResults.txt", "w")
+    statistics_results_file = open("GerardResults/StatisticsResults.csv", "w")
+    statistics_results_file.write("ProductID,Mean,Mode\n")
+    #The max_num_reviews product keeps the highest number of reviews that was given to any product
+    max_num_reviews = 0
+    #The max_num_reviews_prod is the ID for the product with the highest number of reviews
+    max_num_reviews_prod = ""
+    for key, value in mean_reviews.items():
 
-for key, value in mean_reviews.items():
-    mean_results_file.write(key + " : " + str(value[0]) + "\n")
-mean_results_file.close()
+        if value[1] > max_num_reviews:
+            max_num_reviews = value[1]
+            max_num_reviews_prod = key
+
+        stats_list = statistics_dict[key]
+        statistics_results_file.write(key + "," + str(value[0]) + "," + str(stats_list.index(max(stats_list)) + 1) + "\n")
+
+    statistics_results_file.close()
+    print("Statistic Result file write Completed\n")
+
+    skewness_result_file = open("GerardResults/SkewnessResult.txt", "w")
+    mode_review = all_product_rating_hist.index(max(all_product_rating_hist)) + 1
+    if mode_review == mean_review:
+        skewness_result_file.write("Data has normal distribution\n")
+    elif mean_review < mode_review:
+        skewness_result_file.write("Data is negatively skewed\n")
+    else: skewness_result_file.write("Data is positively skewed\n")
+
+    skewness_result_file.close()
+    print("Skewness Result file write Completed\n")
+    #find the largest value in the user_num_reviews_dict will be the highest number of reviews. The corresponsing key will be the user with the highest number of reviews.
+    user_highest_num_reviews = max(user_num_reviews_dict.keys(), key=(lambda key: user_num_reviews_dict[key]))
+    
+    general_stats_file = open("GerardResults/GeneralStatistics.txt", "w")
+    general_stats_file.write("Product with most reviews: " + max_num_reviews_prod + "\nNumber of reviews: " + str(max_num_reviews) + "\n\n")
+    general_stats_file.write("User with highest number of reviews: " + user_highest_num_reviews + "\nNumber of reviews: " + str(user_num_reviews_dict[user_highest_num_reviews]) + "\n\n")
+    general_stats_file.close()
+    print("General Statistics file write complete\n")
+
+    end_time = time.time()
+    time_file = open("ExecutionTime.txt", "w")
+    time_length = end_time - start_time
+    time_file.write("Time for execution: " + str(time_length) + "\n")
+    time_file.close()
+
+if __name__ == '__main__':
+    main()
 
 
 
