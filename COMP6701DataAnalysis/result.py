@@ -1,7 +1,7 @@
 import random
 import itertools as it
 import heapq
-
+import csv
 
 def key_generator():
     charcters = [chr(random.randint(65, 90)) for x in range(100)]
@@ -13,15 +13,27 @@ def sort_heapq(my_dict):
     smallest = heapq.nsmallest(1, items)
     return [-value for value, key in smallest]
 
-the_dict = dict((key, random.randint(-500, 500)) for key, _ in zip(key_generator(), range(3000)))
-the_dict = sort_heapq(the_dict)
-f = open("test.txt", "w")
-for key in the_dict:
-    f.write(str(key) + "\n")
 
-f.close()
+categories = ["Music", "sport", "clothing", "electronics", "education"]
 
-data = [(12, "first"), (24, "second"), (20, "third"), (31, "fourth"),  (20, "fifth"), (19, "sixth")]
-result = heapq.nsmallest(3, data)
-print(result)
+data_dict = {}
+
+data_dict["A1000"] = [0] * len(categories)
+
+
+index = categories.index("electronics")
+data_dict["A1000"][index] += 1
+
+data_dict["A2000"] = [0] * len(categories)
+data_dict["A3000"] = [0] * len(categories)
+data_dict["A4000"] = [0] * len(categories)
+s = ","
+
+with open("tes_results.csv", "w") as outfile:
+        writer = csv.writer(outfile, delimiter=",")
+        for key, value in data_dict.items():
+            data = [key] + value
+            writer.writerow(data)
+
+print(data_dict)
 
